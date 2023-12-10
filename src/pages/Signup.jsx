@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Box, Grid, Link, TextField, Button, Container, Paper, Typography, FormGroup, FormControlLabel, Checkbox } from '@mui/material';
 import PersonAddAlt1Icon from '@mui/icons-material/PersonAddAlt1';
 import SignupValidation from '../components/SignupValidation';
@@ -8,6 +8,7 @@ import { Link as RouterLink } from 'react-router-dom'
 
 function Signup() {
   const navigate = useNavigate();
+  
   const [formData, setFormData] = useState({
     fname: '',
     lname: '',
@@ -15,13 +16,13 @@ function Signup() {
     password: '',
     confirmpassword: '',
   });
-
-  const [errors, seterrors] = useState({
-    email: '',
-    password: '',
-  });
-
+  
   const [backenderror, setbackenderror] = useState("");
+  const [frontenderror, setfrontenderror] = useState({});
+
+  function isEmptyObject(obj) {
+    return Object.keys(obj).length === 0;
+  }
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -31,21 +32,24 @@ function Signup() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    seterrors(SignupValidation(formData));
-    console.log(errors);
+    const validationerrors = await SignupValidation(formData);
+    console.log(validationerrors);
 
-    if (errors.email === '' && errors.password === '') {
+    if (isEmptyObject(validationerrors)) {
       try {
         const response = await axios.post('https://login-backend-tro5.onrender.com/signup', formData);
+        console.log(validationerrors);
+
         navigate('/landingpage');
         console.log(response.data.message);
+
       } catch (error) {
         console.error('Signup failed:', error.response ? error.response.data : error.message);
-        
-        if(error.response.status === 409) setbackenderror(error.response.data.message);
-
+        setbackenderror(error.response.data.message);
         console.log(error.response.data.message);
       }
+    } else {
+      setfrontenderror(validationerrors);
     }
   };
 
@@ -98,7 +102,7 @@ function Signup() {
               onChange={handleChange}
               required
             />
-            {errors.email && <span style = {{color : 'red'}}>{errors.email}</span>}
+            {frontenderror.email && <span style = {{color : 'red'}}>{frontenderror.email}</span>}
           <TextField
 
 color='secondary'
@@ -130,7 +134,7 @@ color='secondary'
             onChange={handleChange}
             required
           />
-          {errors.password && <span style={{color : 'red'}}>{errors.password}</span>}
+          {frontenderror.password && <span style={{color : 'red'}}>{frontenderror.password}</span>}
           {formData.password !== formData.confirmpassword && (<span style = {{ color : 'red' }}>{"Passwords don't match"}</span>)}
 
           {/* if there exists an error from the backend then overwrite the error message being shown below to be the one that is coming from the backend and not the "password does not match" one */}

@@ -27,11 +27,12 @@ function Login() {
     password: "",
   });
   const navigate = useNavigate();
-  const [errors, seterrors] = useState({
-    email: "",
-    password: "",
-  });
+  const [errors, seterrors] = useState({});
   const [backenderror, setbackenderror] = useState("");
+  
+  function isEmptyObject(obj) {
+    return Object.keys(obj).length === 0;
+  }
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -44,11 +45,10 @@ function Login() {
     const email = e.target.email.value;
     const password = e.target.password.value;
 
-    // console.log(errors);
     seterrors(LoginValidation(formData));
     console.log(errors);
 
-    if (errors.email === '' && errors.password === '') {
+    if(isEmptyObject(errors)) {
       try {
         const response = await axios.post('https://login-backend-tro5.onrender.com/login', formData);
         navigate('/landingpage');
@@ -88,7 +88,7 @@ function Login() {
             onChange={handleChange}
             required
           />
-          {errors.email && <span style={{ color : 'red'}}>{errors.email}</span>}
+          {errors && errors.email && <span style={{ color : 'red'}}>{errors.email}</span>}
           <TextField
             color="secondary"
             variant="outlined"
@@ -102,7 +102,7 @@ function Login() {
             onChange={handleChange}
             required
           />
-          {errors.password && <span style={{ color : 'red'}}>{errors.password}</span>}
+          {errors && errors.password && <span style={{ color : 'red'}}>{errors.password}</span>}
           <Button
             type="submit"
             fullWidth
